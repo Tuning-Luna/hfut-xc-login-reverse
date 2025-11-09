@@ -1,0 +1,25 @@
+{
+  "name": "hfut-reverse",
+  "module": "index.ts",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/figlet": "^1.7.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "nodemon --exec bun run src/main.ts",
+    "start": "bun src/main.ts"
+  },
+  "type": "module",
+  "dependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "axios": "^1.13.1",
+    "crypto-js": "^4.2.0",
+    "figlet": "^1.9.3",
+    "sharp": "^0.34.4",
+    "tesseract.js": "^6.0.1"
+  }
+}
