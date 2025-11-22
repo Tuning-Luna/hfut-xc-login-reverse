@@ -1,0 +1,547 @@
+<!DOCTYPE html><head xmlns="http://www.w3.org/1999/html">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" /><title>统一身份认证平台</title>
+    <head><base target="_blank" /></head>
+    <link rel="shortcut icon" href="themes/test-client/images/favicon.ico"><link rel='stylesheet' href="themes/test-client/css/camera.css"><link rel='stylesheet' href="themes/test-client/css/xcConfirm.css"><link rel='stylesheet' href="themes/test-client/css/login.css"><link rel='stylesheet' href="themes/test-client/css/test-client.css?v=1.0.0"><link rel="stylesheet" href="themes/test-client/css/logintype.css"/><script type='text/javascript' src="themes/test-client/js/jquery.min.js"></script>
+    <script type='text/javascript' src="themes/test-client/js/jquery.easing.1.3.js"></script>
+    <script type='text/javascript' src="themes/test-client/js/polyfill.min.js"></script>
+    <script type='text/javascript' src="themes/test-client/js/camera.min.js"></script>
+    <script type='text/javascript' src="themes/test-client/js/crypto.min.js"></script>
+    <script type='text/javascript' src="themes/test-client/js/xcConfirm.js"></script>
+    <script type='text/javascript' src="themes/test-client/js/logintype.js"></script>
+</head>
+
+<body>
+<div class="header-wrap">
+    <div class="container clearfix">
+        <a class="login_logo_bg clearfix" href="http://www.hfut.edu.cn/"></a>
+        <span class="line-logo"></span>
+        <span class="title">统一身份认证</span>
+    </div>
+</div>
+<div>
+    <div id="login-form">
+        <!--  PC端展示      --><div class="fluid_container">
+            <div class="camera_wrap camera_emboss pattern_1" id="camera_wrap_4">
+                <div data-thumb="/cas/themes/test-client/images/slides/hgd01.jpg"
+                     data-src="/cas/themes/test-client/images/slides/hgd01.jpg">
+                </div>
+                <div data-thumb="/cas/themes/test-client/images/slides/hgd02.jpg"
+                     data-src="/cas/themes/test-client/images/slides/hgd02.jpg">
+                </div>
+                <div data-thumb="/cas/themes/test-client/images/slides/hgd03.jpg"
+                     data-src="/cas/themes/test-client/images/slides/hgd03.jpg">
+                </div>
+
+            </div>
+        </div>
+
+        <div class="box" id="login">
+            <div id="login-wrap">
+                <div class="login-header">登录</div>
+                <div class="hd">
+                    <h2 id="Static2Quick" class="quick" tabindex="0">扫码登录</h2>
+                    <h2 id="Quick2Static" class="static" tabindex="0">密码登录</h2>
+                    <div class="login-tip">
+                        <div class="poptip">
+                            <div class="poptip-arrow">
+                                <em></em>
+                                <span></span>
+                            </div>
+                            <div class="poptip-content">
+                                扫码登录
+                            </div>
+                        </div>
+                    </div>
+                    <div class="login-tip2">
+                        <div class="poptip">
+                            <div class="poptip-arrow">
+                                <em></em>
+                                <span></span>
+                            </div>
+                            <div class="poptip-content">
+                                密码登录
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="QuickLogin" class="quick-login">
+                <div class="quick-mod">
+                    <div class="quick-img">
+<!--                     <img src="app/qrCode" alt="登录二维码">--></div>
+                    <!-- 二维码状态失效情况下展示 --><div id="timeoutWrap" class="timeout-wrap">
+                        <p>二维码已失效</p>
+                        <span id="quickRefresh">刷新二维码</span>
+                    </div>
+                    <div class="quick-description clearfix">
+                        <div class="saoma-icon" ></div>
+                        <div class="saoma-tip">
+                            <p class="open-p">打开 微信-合肥工业大学信息化</p>
+                            <p class="scan-p">-指间工大-我的-扫码登录</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="InputLogin">
+                <form method="post" class="loginForm" id="fm1" action="login" target="_self">
+                    <div class="row" style="margin-top: 15px">
+                        <div>
+                            <input class="required username" onkeydown="keydown(event)"
+                                   id="username"
+                                   type="text"
+                                   value=""
+                                   onfocus="resetMess1()"
+                                   onblur="namenotnull(this)"
+                                   placeholder="账号"
+                                   autocomplete="off" name="username" /><span id="errorusername" value="" class="errMessage"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div>
+                            <input class="required password" onkeydown="keydown(event)"
+                                   type="password"
+                                   id="pwd"
+                                   value=""
+                                   onfocus="resetMess2()"
+                                   onblur="pswnotnull(this)"
+                                   placeholder="密码"
+                                   autocomplete="off"/><span id="errorpassword" value="" class="errMessage">
+                                </span>
+                        </div>
+                    </div>
+
+                    <div class="row pb-20">
+                        <div id="required-code" class="clearfix">
+                            <input class="required-code" onkeydown="keydown(event)"
+                                   id="capcha"
+                                   name="capcha"
+                                   type="capcha"
+                                   value=""
+                                   onfocus="resetMess3()"
+                                   placeholder="验证码"
+                                   autocomplete="off"/><img id="code-page" src="vercode" onclick="changeCode()"></img>
+                        </div>
+                        <span id="errorcode" value="" class="errMessage">
+
+                        </span>
+                    </div>
+                    <div id="form-foot">
+                        <a class="form-foot-font" style="cursor: pointer" onclick="setUrl('service')">忘记密码？</a>
+                    </div>
+                    <div class="btn-row">
+                        <input type="hidden" name="execution" value="e2s1"/><input type="hidden" name="_eventId" value="submit"/><input type="hidden" id="password" name="password" value=""/><input type="hidden" name="geolocation"/><!--<input id="sb1" class="button-submit display-none"--><!--name="submit"--><!--th:value="登录"--><!--type="submit" onclick="return formSubmit()"/>--><input id="sb2" class="button-submit"
+                               value="登录"
+                               type="button" onclick="checkUserIdenty()"/></div>
+                </form>
+
+                <div id="otherLoginName" class="other-div hide">
+                    <span>其他登录方式：</span>
+                    <span id="weixin" class="hide method-a" style="cursor:pointer">
+                        <img src="themes/test-client/images/weixin-icon.png"/>微信
+                    </span>
+                    <span class="dingding-span hide">|</span>
+                    <span id="dingding" class="hide method-a" style="cursor:pointer">
+                        <img src="themes/test-client/images/dingtalk-icon.png"/>钉钉
+                    </span>
+                </div>
+
+            </div>
+
+            <p class="new_student mt-20">
+                <span>温馨提示：</span>
+                为了您的账户安全请立刻修改密码并定期更新密码，密码强度不得低于13位字符（建议由大小写字母、数字、特殊字符等组成，不得包含生日、手机号码、邮箱账号等个人关联信息）。如未按要求修改造成的损失由用户本人负责。<br/>
+                咨询电话：屯溪路校区：0551-62901178
+                <p class="word-p" style="padding-left: 70px;">翡翠湖校区：0551-63831163</p>
+                <p class="word-p" style="padding-left: 70px;">宣城校区：0563-3831172</p>
+                <p class="word-p">线下办理：屯溪路校区：信息化建设与管理办公室用户服务大厅</p>
+                <p class="word-p" style="padding-left: 70px;">翡翠湖校区：信息化建设与管理办公室用户服务大厅</p>
+                <p class="word-p" style="padding-left: 70px;">宣城校区：宣城校区行政楼306</p>
+            </p>
+            <div class="browser clearfix"><span>建议浏览器：</span>
+                <a style="margin-left:0;" class="ie_pic" target="_blank" href="http://windows.microsoft.com/zh-cn/internet-explorer/download-ie">
+                    <img src="themes/test-client/images/slides/ie.png"/></a>
+                <span>IE8+</span>
+                <a class="firefox_pic" target="_blank" href="http://www.firefox.com.cn/download/">
+                    <img src="themes/test-client/images/slides/firefox.png"/></a>
+                <span>火狐</span>
+                <a class="google_pic" target="_blank" href="https://www.google.cn/chrome/">
+                    <img src="themes/test-client/images/slides/google.png"/></a>
+                <span>谷歌</span>
+            </div>
+            <p id="browser360" class="new_student" style="position:relative;">360浏览器请使用极速模式
+                <a class="open_360" id="open_360">(如何使用?)
+                    <span class="b_360" id="open_360_img">
+                        <img  width="616" height="278"
+                              src="/cas/themes/test-client/images/open360.png"/></span>
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+<!-- PC端展示 --><div id="footWrap" class="footer-wrap">
+    <div id="copyright" class="container">
+        <p class="left copy-p">合肥工业大学 版权所有 Copyright © 2019 HEFEI UNIVERSITY OF TECHNOLOGY，All Rights Reserved.</p>
+        <span class="right">联系电话：0551-62901178 邮箱：info@hfut.edu.cn</span>
+    </div>
+</div>
+
+
+<script type="text/JavaScript">
+
+    Login.Init({
+        StaticLogin: true //StaticLogin为true时，默认加载密码登录界面，false时，默认加载扫码登录界面
+    });
+
+    var isCodeShow = false,  // 判断验证码是否展示 默认不展示
+        isPC;
+
+    window.alert = alert;
+    function alert(e) {
+        $("body").append('<div id="msg"><div id="msg_top">信息<span class="msg_close">×</span></div><div id="msg_cont">'+e+'</div><div class="msg_close" id="msg_clear">确定</div></div>');
+        $(".msg_close").click(function (){
+            $("#msg").remove();
+        });
+    }
+
+    jQuery().ready(function () {
+        $.getScript("themes/test-client/js/common.js", function () {
+            isPC = isPC()
+            if (isPC) {  // 为true表示PC终端
+                jQuery('#camera_wrap_4').camera({
+                    height: 'auto',//高度
+                    hover: false,//鼠标经过幻灯片时暂停(true, false)
+                    loader: 'none',//加载图标(pie, bar, none)
+                    loaderOpacity: '8',//加载图标的透明度( '.8'默认值, 其他的可以写 0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1 )
+                    loaderPadding: '2',//加载图标的大小( 填数字,默认为2 )
+                    navigation: false,//左右箭头显示/隐藏(true, false)
+                    navigationHover: false,//鼠标经过时左右箭头显示/隐藏(true, false)
+                    pagination: false,//是否显示分页(true, false)
+                    playPause: false,//暂停按钮显示/隐藏(true, false)
+                    pauseOnClick: false,//鼠标点击后是否暂停(true, false)
+                    portrait: false,//显示幻灯片里所有图片的实际大小(true, false)
+                    thumbnails: false,//是否显示缩略图(true, false)
+                    time: 500,// 幻灯片播放时间( 填数字 )
+                    imagePath: './',
+                    thumbnails: false
+                });
+                isClosedCookie();
+            } else {  // 移动端情况
+                $('#footWrap, .fluid_container, .header-wrap, .browser, #browser360').remove()
+            }
+        })
+        baseUrl = getLoginString(name);
+        var baseLink = 'login?' + baseUrl;
+        jQuery("#fm1").attr('action', baseLink);
+        isInitCode();
+
+        setSessionExpire();
+
+        // 钉钉登录点击事件
+        $("#dingding").click(function (){
+            var wordArray = CryptoJS.enc.Utf8.parse(location.href);
+            var url = CryptoJS.enc.Base64.stringify(wordArray);
+            window.open('/cas/dingding/login?redirectUrl=' + url, '_self');
+        });
+
+        // 微信登录点击事件
+        $("#weixin").click(function (){
+            var wordArray = CryptoJS.enc.Utf8.parse(location.href);
+            var url = CryptoJS.enc.Base64.stringify(wordArray);
+            window.open('/cas/weixin/login?redirectUrl=' + url, '_self');
+        });
+    })
+
+    // 判断浏览器是否禁用了cookie
+    function isClosedCookie() {
+        if (!navigator.cookieEnabled){
+            alert('请您启用浏览器cookie功能或更换浏览器');
+        }
+    }
+
+    // 密码加密
+    function encryptionPwd(pwd) {
+        var secretKey = getCookie("LOGIN_FLAVORING"),
+            key = CryptoJS.enc.Utf8.parse(secretKey),
+            password = CryptoJS.enc.Utf8.parse(pwd),
+            encrypted = CryptoJS.AES.encrypt(password, key, {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7}),
+            encryptedPwd = encrypted.toString();
+        return encryptedPwd;
+    }
+
+    // 获取cookie中的值 LOGIN_FLAVORING就是加密所需要的秘钥
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++)
+        {
+            var c = ca[i].trim();
+            if (c.indexOf(name)==0) return c.substring(name.length,c.length);
+        }
+        return "";
+    }
+
+    // form表单提交之前 给密码加密
+    function formSubmit() {
+        var password = document.getElementById('pwd').value;
+        document.getElementById('password').value = encryptionPwd(password);
+    }
+
+    function keydown(event) {
+        if (event.keyCode === 13) {
+            checkUserIdenty();
+        }
+    }
+
+    function checkUserIdenty(){
+        var username = document.getElementById('username').value.trim();
+        var password = document.getElementById('pwd').value;
+        document.getElementById('username').value = username;
+        var param = {
+            username : username,
+            password : encryptionPwd(password)
+        }
+        if (isCodeShow) {
+            param.capcha = document.getElementById('capcha').value;
+        }
+        jQuery.ajax({
+            url: '/cas/policy/checkUserIdenty',
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            cache: false,
+            data: param,
+            success: function (result) {
+                console.log("checkUserIdenty返回值:" + result);
+                if (result.code === 1) {
+                    var res = result.data;
+                    username = result.data.username;
+                    if (result.data.authFlag) {  // true 说明开启了信息采集
+                        if (result.data.phoneRequired == true || result.data.mailRequired == true) {
+                            var link = 'loginInfoRecord?username='
+                                +username+'&mailRequired='+result.data.mailRequired+'&phoneRequired='+
+                                result.data.phoneRequired+'&authTicket='+result.data.authTicket;
+                            window.location.href = link;
+                            return false;
+                        } else {
+                            if (res.updatePwdRequired) {  // 表示需要强制修改初始密码
+                                turnUpdatePwd(username,1)
+                            } else if (res.needUpdatePwd) {  // 需要修改初始密码，但是不是强制修改
+                                turnUpdatePwdConfirm(username,1)
+                            } else if (res.regularUpdatePwdRequired) {  // 需要强制定时修改密码
+                                turnUpdatePwd(username,2)
+                            } else if (res.regularUpdatePwd) {  // 需要定时修改密码
+                                turnUpdatePwdConfirm(username,2)
+                            } else {
+                                formSubmit();
+                                document.getElementById("fm1").submit();
+                                return true;
+                            }
+                        }
+                    } else {  // 未开启信息采集
+                        if (res.updatePwdRequired) {  // 表示需要强制修改密码
+                            turnUpdatePwd(username,1)
+                        } else if (res.needUpdatePwd) {  // 需要修改密码，但是不是强制修改
+                            turnUpdatePwdConfirm(username,1)
+                        } else if (res.regularUpdatePwdRequired) {  // 需要强制定时修改密码
+                            turnUpdatePwd(username,2)
+                        } else if (res.regularUpdatePwd) {  // 需要定时修改密码
+                            turnUpdatePwdConfirm(username,2)
+                        } else {
+                            formSubmit();
+                            document.getElementById("fm1").submit();
+                            return true;
+                        }
+                    }
+                } else {
+                    document.getElementById("errorpassword").innerHTML = result.msg;
+                    return false;
+                }
+            }
+        });
+    }
+
+    // 强制修改密码
+    function turnUpdatePwd(username,type) {
+        var option = {
+            title: "提示",
+            btn: parseInt("0001",2),
+            onOk: function(){
+                var link = 'updatePwd?username='+username;
+                window.location.href = link;
+            }
+        }
+        if(type === 1){
+            window.wxc.xcConfirm("当前为初始密码登录，为了您的信息安全，请修改密码！", "custom", option);
+        } else if(type === 2){
+            window.wxc.xcConfirm("由于您长时间未更新密码，为了您的信息安全，请及时修改密码！", "custom", option);
+            $(".xcConfirm .popBox").css("height","260px");
+        }
+        $('.clsBtn').remove()
+    }
+
+    // 需要修改密码，但是不强制修改 有取消操作
+    function turnUpdatePwdConfirm(username,type) {
+        var option = {
+            title: "提示",
+            btn: parseInt("0011",2),
+            onOk: function(){
+                var link = 'updatePwd?username='+username;
+                window.location.href = link;
+            },
+            // 取消情况下直接登录
+            onCancel: function() {
+                formSubmit()
+                document.getElementById("fm1").submit();
+                return true;
+            }
+        }
+        if(type === 1){
+            window.wxc.xcConfirm("当前为初始密码登录，为了您的信息安全，请修改密码！", "custom", option);
+        } else if(type === 2){
+            window.wxc.xcConfirm("由于您长时间未更新密码，为了您的信息安全，请及时修改密码！", "custom", option);
+            $(".xcConfirm .popBox").css("height","260px");
+        }
+        $('.clsBtn').remove()
+    }
+
+    function isInitCode(){
+        jQuery.ajax({
+            url: '/cas/checkInitParams',
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            cache: false,
+            success: function (result) {
+                console.log("要不要展示验证码：" + result);
+                isCodeShow = result.vercode;  // result 为true表示展示 false表示不展示
+                if(isCodeShow) {
+                    jQuery("#required-code").css("display","block");
+                    changeCode();
+                } else {
+                    document.getElementById('capcha').value='';
+                }
+
+                if (result.openThird) {
+                    jQuery("#otherLoginName").removeClass('hide');
+                    let arr = result.thirdPartys.split(',');
+                    arr.forEach(function (item) {
+                        jQuery("#" + item).removeClass('hide')
+                        jQuery("." + item + '-span').removeClass('hide')
+                    })
+                }
+            }
+        });
+    }
+
+    function setUrl(name) {
+        var url = getQueryString(name);
+        link = 'forget?service=' + url;
+        if (isPC) {
+            window.open(link,"_blank")
+        } else {
+            window.location.href = link;
+        }
+    }
+
+    function getQueryString(name) {
+        var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return unescape(r[2]);
+        }
+        return null;
+    }
+
+    function getLoginString(name) {
+        var r = window.location.search.substr(1);
+        if (r != null) {
+            return r;
+        }
+        return null;
+    }
+
+    // 账号非空验证
+    function namenotnull(obj) {
+        if (obj.value.trim() == "") {
+            if (document.getElementById('error')) {
+                document.getElementById('error').innerHTML = ""
+            }
+            document.getElementById("errorusername").innerHTML = "请输入账号！";
+            return false;
+        } else {
+            document.getElementById("errorusername").innerHTML = "";
+            return true;
+        }
+    }
+
+    //密码非空验证
+    function pswnotnull(obj) {
+        if (obj.value == "") {
+            document.getElementById("errorpassword").innerHTML = "请输入密码！";
+            return false;
+        } else {
+            document.getElementById("errorpassword").innerHTML = "";
+            return true;
+        }
+    }
+
+    //校验验证码
+    function checkCode(inpCode) {
+        var res = false;
+        jQuery.ajax({
+            url: '/cas/checkvercode',
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            cache: false,
+            data: {strCode: inpCode},
+            success: function (result) {
+                res = result.code == 1;
+            }
+        });
+        return res;
+    }
+
+    //替换验证码
+    function changeCode() {
+        var imgNode = document.getElementById("code-page"),
+            randomStr = new Date().getTime();
+        // imgNode.src = "/cas/vercode?randomStr=" + Math.random();
+        imgNode.src = "vercode?time=" + randomStr;
+    }
+
+    //获取焦点时重置信息提示
+    function resetMess3() {
+        document.getElementById("errorcode").innerHTML = "";
+    }
+
+    function resetMess2() {
+        document.getElementById("errorpassword").innerHTML = "";
+    }
+
+    function resetMess1() {
+        document.getElementById("errorusername").innerHTML = "";
+    }
+
+    //当用户停留在登录页面时，轮询设置session的过期时间，保证登录之前session不过期
+    function setSessionExpire() {
+        var sessiontid = setTimeout(function () {
+            $.ajax({
+                url: '/cas/session/setSessionExpire',
+                dataType: "json",
+                type: 'GET',
+                success: function (res) {
+                    if (res.code === 1) {
+                        setSessionExpire();
+                    } else {
+                        clearTimeout(sessiontid);
+                    }
+                }
+            })
+        }, 600000);
+    }
+
+</script>
+</body>
+</html>
