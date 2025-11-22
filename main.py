@@ -485,11 +485,8 @@ class Reverse:
 
 if __name__ == "__main__":
     Reverse.preLogin()
-    print(Reverse.session.cookies)
     Reverse.vercode()
-    print(Reverse.session.cookies)
     Reverse.checkInitParams()
-    print(Reverse.session.cookies)
     res1 = Reverse.vercodeWithTime()
 
     # 保存图形验证码
@@ -502,47 +499,47 @@ if __name__ == "__main__":
 
     Reverse.checkUserIdenty(vercode)
 
-    # # 添加secret Cookie
-    # secret = Reverse.generate_secret()
-    # Reverse.session.cookies.set("secret", secret, domain="one.hfut.edu.cn", path="/")
+    # 添加secret Cookie
+    secret = Reverse.generate_secret()
+    Reverse.session.cookies.set("secret", secret, domain="one.hfut.edu.cn", path="/")
 
     # # 验证登录
     Reverse.authorize()
     Reverse.login(vercode)
     res = Reverse.authorize()
 
-    # # 解析 URL，提取出code，之后获取token需要
-    # parsed = urlparse(res.url)
-    # params = parse_qs(parsed.query)
-    # code = params.get("code", [None])[0]
+    # 解析 URL，提取出code，之后获取token需要
+    parsed = urlparse(res.url)
+    params = parse_qs(parsed.query)
+    code = params.get("code", [None])[0]
 
-    # print("code : ", code)
+    print("code : ", code)
 
-    # # 获取token
-    # res2 = Reverse.getToken(code)
-    # token = res2.json()["data"]["access_token"]
+    # 获取token
+    res2 = Reverse.getToken(code)
+    token = res2.json()["data"]["access_token"]
 
-    # print("token : ", token)
+    print("token : ", token)
 
-    # # 把token 存入cookie
-    # Reverse.session.cookies.set("token", token, domain="one.hfut.edu.cn", path="/")
+    # 把token 存入cookie
+    Reverse.session.cookies.set("token", token, domain="one.hfut.edu.cn", path="/")
 
-    # # print("当前Cookie:", Reverse.session.cookies.get_dict())
-    # # 应该有：SESSION JSESSIONID LOGINI_FAVOR TGC secret token
+    # print("当前Cookie:", Reverse.session.cookies.get_dict())
+    # 应该有：SESSION JSESSIONID LOGINI_FAVOR TGC secret token
 
-    # Reverse.checkToken(token, code)
+    Reverse.checkToken(token, code)
 
-    # # 测试获取用户信息
-    # res3 = Reverse.selectUserSimplifyInfoForHall(token, code)
-    # print(res3.json())
+    # 测试获取用户信息
+    res3 = Reverse.selectUserSimplifyInfoForHall(token, code)
+    print(res3.json())
 
-    # res4 = Reverse.selectUserInfoForHall(token=token)
-    # print(res4.json())
+    res4 = Reverse.selectUserInfoForHall(token=token)
+    print(res4.json())
 
-    # Reverse.studentHome()
+    Reverse.studentHome()
 
-    # Reverse.studentLogin()
+    Reverse.studentLogin()
 
-    # # 测试获取学生成绩
-    # res5 = Reverse.programCompletionPreview()
-    # print(res5.json())
+    # 测试获取学生成绩
+    res5 = Reverse.programCompletionPreview()
+    print(res5.json())
