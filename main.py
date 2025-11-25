@@ -20,7 +20,7 @@ password = os.getenv("password")
 class Reverse:
     session = requests.Session()
 
-    # 获取JSSESSION
+    # 获取SESSION
     @staticmethod
     def preLogin() -> requests.Response:
         headers = {
@@ -45,7 +45,7 @@ class Reverse:
         response = Reverse.session.get(url, headers=headers, params=params)
         return response
 
-    # 获取JSSESSION
+    # 获取JSSESSIONID
     @staticmethod
     def vercode() -> requests.Response:
         headers = {
@@ -143,9 +143,8 @@ class Reverse:
         key = Reverse.session.cookies.get_dict()["LOGIN_FLAVORING"].encode("utf-8")
 
         # 不要修改全局的 password
-        pwd_bytes = password.encode("utf-8")  # 转 bytes
+        pwd_bytes = password.encode("utf-8")
 
-        # 默认 LOGIN_FLAVORING 长度为 16
         if len(key) not in (16, 24, 32):
             raise ValueError("密钥长度必须为 16、24 或 32 字节（对应 AES-128/192/256）")
 
@@ -485,8 +484,11 @@ class Reverse:
 
 if __name__ == "__main__":
     Reverse.preLogin()
+    print("当前cookie：", Reverse.session.cookies)
     Reverse.vercode()
+    print("当前cookie：", Reverse.session.cookies)
     Reverse.checkInitParams()
+    print("当前cookie：", Reverse.session.cookies)
     res1 = Reverse.vercodeWithTime()
 
     # 保存图形验证码
