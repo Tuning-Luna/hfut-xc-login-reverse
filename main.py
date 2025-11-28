@@ -16,7 +16,6 @@ password = os.getenv("password")
 # student_id = input("请输入学号：")
 # password = input("请输入密码：")
 
-
 class Reverse:
     session = requests.Session()
 
