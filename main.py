@@ -16,6 +16,7 @@ password = os.getenv("password")
 # student_id = input("请输入学号：")
 # password = input("请输入密码：")
 
+
 class Reverse:
     session = requests.Session()
 
@@ -481,66 +482,134 @@ class Reverse:
         return response
 
 
+def ensure_credentials():
+    """确保学号与密码已加载，环境变量缺失时转为交互输入。"""
+    global student_id, password
+    if not student_id:
+        student_id = input("请输入学号：").strip()
+    if not password:
+        password = input("请输入密码：").strip()
+
+
+class ReverseCLI:
+    """面向命令行的交互逻辑封装，爬虫请求仍复用 Reverse 类。"""
+
+    def __init__(self):
+        self.token = None
+        self.code = None
+        self.vercode_file = "vercode.png"
+
+    def _prepare_login_chain(self):
+        Reverse.preLogin()
+        Reverse.vercode()
+        Reverse.checkInitParams()
+        return Reverse.vercodeWithTime()
+
+    def _save_and_open_captcha(self, response):
+        with open(self.vercode_file, "wb") as f:
+            f.write(response.content)
+        try:
+            os.startfile(self.vercode_file)
+        except Exception:
+            print(f"验证码已保存至 {self.vercode_file}，请手动打开查看。")
+
+    def login(self):
+        print("正在初始化登录链路...")
+        res = self._prepare_login_chain()
+        self._save_and_open_captcha(res)
+
+        vercode = input("请输入验证码：").strip()
+        Reverse.checkUserIdenty(vercode)
+
+        secret = Reverse.generate_secret()
+        Reverse.session.cookies.set(
+            "secret", secret, domain="one.hfut.edu.cn", path="/"
+        )
+
+        Reverse.authorize()
+        Reverse.login(vercode)
+        res_final = Reverse.authorize()
+
+        parsed = urlparse(res_final.url)
+        params = parse_qs(parsed.query)
+        self.code = params.get("code", [None])[0]
+        if not self.code:
+            raise RuntimeError("未能在重定向中解析到 code")
+        print("code:", self.code)
+
+        res_token = Reverse.getToken(self.code)
+        self.token = res_token.json()["data"]["access_token"]
+        print("token:", self.token)
+
+        Reverse.session.cookies.set(
+            "token", self.token, domain="one.hfut.edu.cn", path="/"
+        )
+        Reverse.checkToken(self.token, self.code)
+        print("登录成功，token 已写入会话。")
+
+    def _require_token(self):
+        if not self.token or not self.code:
+            print("请先完成登录获取 token。")
+            return False
+        return True
+
+    def fetch_basic_info(self):
+        if not self._require_token():
+            return
+        res = Reverse.selectUserSimplifyInfoForHall(self.token, self.code)
+        print("用户简要信息：", res.json())
+
+    def fetch_detail_info(self):
+        if not self._require_token():
+            return
+        res = Reverse.selectUserInfoForHall(self.token)
+        print("用户详细信息：", res.json())
+
+    def fetch_grades(self):
+        if not self._require_token():
+            return
+        Reverse.studentHome()
+        Reverse.studentLogin()
+        res = Reverse.programCompletionPreview()
+        print("成绩信息：", res.json())
+
+    def show_menu(self):
+        print(
+            "\n请选择操作：\n"
+            "1. 登录并获取 token\n"
+            "2. 查询用户简要信息\n"
+            "3. 查询用户详细信息\n"
+            "4. 查询课程完成情况（成绩）\n"
+            "5. 退出\n"
+        )
+
+
+def main():
+    ensure_credentials()
+    cli = ReverseCLI()
+
+    action_map = {
+        "1": cli.login,
+        "2": cli.fetch_basic_info,
+        "3": cli.fetch_detail_info,
+        "4": cli.fetch_grades,
+    }
+
+    while True:
+        cli.show_menu()
+        choice = input("输入序号：").strip()
+        if choice == "5":
+            print("已退出。")
+            break
+        action = action_map.get(choice)
+        if action:
+            try:
+                action()
+            except Exception as exc:
+                print("操作失败：", exc)
+        else:
+            print("无效输入，请重新选择。")
+
+
 if __name__ == "__main__":
-    Reverse.preLogin()
-    print("当前cookie：", Reverse.session.cookies)
-    Reverse.vercode()
-    print("当前cookie：", Reverse.session.cookies)
-    Reverse.checkInitParams()
-    print("当前cookie：", Reverse.session.cookies)
-    res1 = Reverse.vercodeWithTime()
-
-    # 保存图形验证码
-    filename = "vercode.png"
-    with open(filename, "wb") as f:
-        f.write(res1.content)
-    os.startfile(filename)  # 打开验证码图片
-
-    vercode = input("Input Vercode : ")
-
-    Reverse.checkUserIdenty(vercode)
-
-    # 添加secret Cookie
-    secret = Reverse.generate_secret()
-    Reverse.session.cookies.set("secret", secret, domain="one.hfut.edu.cn", path="/")
-
-    # # 验证登录
-    Reverse.authorize()
-    Reverse.login(vercode)
-    res = Reverse.authorize()
-
-    # 解析 URL，提取出code，之后获取token需要
-    parsed = urlparse(res.url)
-    params = parse_qs(parsed.query)
-    code = params.get("code", [None])[0]
-
-    print("code : ", code)
-
-    # 获取token
-    res2 = Reverse.getToken(code)
-    token = res2.json()["data"]["access_token"]
-
-    print("token : ", token)
-
-    # 把token 存入cookie
-    Reverse.session.cookies.set("token", token, domain="one.hfut.edu.cn", path="/")
-
-    # print("当前Cookie:", Reverse.session.cookies.get_dict())
-    # 应该有：SESSION JSESSIONID LOGINI_FAVOR TGC secret token
-
-    Reverse.checkToken(token, code)
-
-    # 测试获取用户信息
-    res3 = Reverse.selectUserSimplifyInfoForHall(token, code)
-    print(res3.json())
-
-    res4 = Reverse.selectUserInfoForHall(token=token)
-    print(res4.json())
-
-    Reverse.studentHome()
-
-    Reverse.studentLogin()
-
-    # 测试获取学生成绩
-    res5 = Reverse.programCompletionPreview()
-    print(res5.json())
+    main()
