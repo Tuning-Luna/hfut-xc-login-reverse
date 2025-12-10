@@ -8,10 +8,12 @@ from dotenv import load_dotenv
 import os
 import json
 
-
 load_dotenv()
 student_id = os.getenv("student_id")
 password = os.getenv("password")
+
+# student_id = input("账号")
+# password = input("密码")
 
 
 class Reverse:
