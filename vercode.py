@@ -1,61 +1,71 @@
-import requests
+"""独立验证码抓取工具（可用于收集样本 / 人工标注）。
+
+会先访问一次 CAS 登录页以建立会话 Cookie（SESSION / JSESSIONID），
+然后按固定间隔循环抓取验证码图片保存到 ./vercode 目录。
+
+用法：
+    python vercode.py
+"""
+
 import time
-import os
+from pathlib import Path
 
-# 固定请求头
-headers = {
-    "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-    "Accept-Language": "en-GB,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
-    "Cache-Control": "no-cache",
-    "Connection": "keep-alive",
-    "Pragma": "no-cache",
-    "Referer": "https://cas.hfut.edu.cn/cas/login?service=https%3A%2F%2Fcas.hfut.edu.cn%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DBsHfutEduPortal%26redirect_uri%3Dhttps%253A%252F%252Fone.hfut.edu.cn%252Fhome%252Findex%26response_type%3Dcode%26client_name%3DCasOAuthClient",
-    "Sec-Fetch-Dest": "image",
-    "Sec-Fetch-Mode": "no-cors",
-    "Sec-Fetch-Site": "same-origin",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
-    "sec-ch-ua": '"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"',
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": '"Windows"',
-}
+import requests
 
-# 固定 Cookie（你可以外部获取后动态写入）
-cookies = {
-    "SESSION": "60ba9476-779c-4d7d-a783-277b0b4e7bce",
-    "JSESSIONID": "5829dac1c639474e9673308473e8443c",
-    "LOGIN_FLAVORING": "6lc1cw5bk2hcd845",
-}
+from hfut import config, headers
 
 # 验证码接口
-url = "https://cas.hfut.edu.cn/cas/vercode"
+VERCODE_URL = f"{config.CAS_BASE}/cas/vercode"
 
 # 保存目录
-save_path = "./vercode"
-os.makedirs(save_path, exist_ok=True)
+SAVE_DIR = Path("./vercode")
+SAVE_DIR.mkdir(exist_ok=True)
 
 # 请求间隔秒数
-interval = 3  # 你可以自定义，比如 1 秒请求一次
+INTERVAL = 3  # 你可以自定义，比如 1 秒请求一次
+
+# 登录页 service 参数（与主流程一致）
+_SERVICE = (
+    "https://cas.hfut.edu.cn/cas/oauth2.0/callbackAuthorize"
+    "?client_id=BsHfutEduPortal"
+    "&redirect_uri=https%3A%2F%2Fone.hfut.edu.cn%2Fhome%2Findex"
+    "&response_type=code&client_name=CasOAuthClient"
+)
 
 
-def fetch_vercode():
+def warmup_session(session: requests.Session) -> None:
+    """访问一次 CAS 登录页，让服务端下发 SESSION / JSESSIONID Cookie。
+
+    验证码校验依赖该会话，因此需要与登录页共用同一个 session。
+    """
+    session.get(
+        f"{config.CAS_BASE}/cas/login",
+        headers=headers.page(extra={"Sec-Fetch-Site": "none"}),
+        params={"service": _SERVICE},
+    )
+
+
+def fetch_vercode(session: requests.Session) -> None:
     ts = int(time.time() * 1000)  # 时间戳（毫秒）
     params = {"time": str(ts)}
 
-    resp = requests.get(url, headers=headers, cookies=cookies, params=params)
+    resp = session.get(VERCODE_URL, headers=headers.image(), params=params)
 
     if resp.status_code == 200 and resp.content:
-        filename = f"{save_path}/{ts}.png"
-        with open(filename, "wb") as f:
-            f.write(resp.content)
+        filename = SAVE_DIR / f"{ts}.png"
+        filename.write_bytes(resp.content)
         print(f"[OK] 验证码保存成功: {filename}")
     else:
         print(f"[ERR] 请求失败: HTTP {resp.status_code}")
 
 
-def loop_fetch():
+def loop_fetch() -> None:
+    session = requests.Session()
+    warmup_session(session)
+
     while True:
-        fetch_vercode()
-        time.sleep(interval)
+        fetch_vercode(session)
+        time.sleep(INTERVAL)
 
 
 if __name__ == "__main__":

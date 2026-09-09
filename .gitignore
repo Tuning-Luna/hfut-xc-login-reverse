@@ -2,3 +2,9 @@
 session.json
 vercode
 env
+
+# Python 运行与静态检查产生的缓存/生成物
+__pycache__/
+*.pyc
+.ruff_cache/
+vercode.png

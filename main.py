@@ -1,12 +1,24 @@
-import os
-from urllib.parse import urlparse, parse_qs
+"""HFUT 登录逆向 CLI 入口。
+
+用法：
+    python main.py
+"""
+
+import threading
+import webbrowser
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
+
 from bs4 import BeautifulSoup
-from reverse import Reverse
 from tabulate import tabulate
+
+from hfut.client import Reverse
+
+# 验证码图片的保存位置（相对当前工作目录）
+VERCODE_FILE = Path("vercode.png")
 
 
 class UserCLI:
-
     # 初始化用户
     @staticmethod
     def init() -> bool:
@@ -19,11 +31,13 @@ class UserCLI:
         Reverse.checkInitParams()
         res1 = Reverse.vercodeWithTime()  # 得到图形验证码
 
-        # 保存图形验证码
-        filename = "vercode.png"
-        with open(filename, "wb") as f:
-            f.write(res1.content)
-        os.startfile(filename)  # 打开验证码图片
+        # 保存图形验证码，并用系统默认看图程序打开
+        VERCODE_FILE.write_bytes(res1.content)
+        threading.Thread(
+            target=webbrowser.open,
+            args=(VERCODE_FILE.resolve().as_uri(),),
+            daemon=True,
+        ).start()
 
         vercode = input("Input Vercode : ")
 
@@ -35,7 +49,7 @@ class UserCLI:
             "secret", secret, domain="one.hfut.edu.cn", path="/"
         )
 
-        # # 验证登录
+        # 验证登录
         Reverse.authorize()
         Reverse.login(vercode)
         res = Reverse.authorize()

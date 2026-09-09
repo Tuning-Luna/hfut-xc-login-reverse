@@ -16,6 +16,19 @@
 
 通过抓包分析登录逻辑，从而达到直接调用API完成登录合肥工业大学官网的作用。可以用于第三方软件开发。
 
+## 目录结构
+
+```
+hfut-xc-login-reverse/
+├── hfut/           # 客户端包
+│   ├── config.py   # .env 账号读取 + 域名/URL 常量
+│   ├── headers.py  # 各接口公共请求头构建器
+│   └── client.py   # Reverse 类（CAS/门户/教务接口）
+├── main.py         # 交互式 CLI 入口
+├── vercode.py      # 独立验证码抓取工具
+└── requirements.txt
+```
+
 ## 如何使用
 
 首先克隆并进入此仓库：
@@ -47,16 +60,21 @@ password = "YourPassword"
 
 
 
-如果想要手动输入，可以在 [main.py 14-18行](./main.py) 把`getenv` 注释掉，然后启用下方的输入学号密码
+如果想要手动输入，可以在 [hfut/config.py](./hfut/config.py) 把 `getenv` 注释掉，然后启用下方的输入学号密码
 
 ```python
+# hfut/config.py
+import os
+
+from dotenv import load_dotenv
+
 load_dotenv()
 
-student_id = os.getenv("student_id")
-password = os.getenv("password")
+STUDENT_ID = os.getenv("student_id")
+PASSWORD = os.getenv("password")
 
-# student_id = input("请输入学号：")
-# password = input("请输入密码：")
+# STUDENT_ID = input("请输入学号：")
+# PASSWORD = input("请输入密码：")
 ```
 
 
