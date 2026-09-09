@@ -50,32 +50,16 @@ python -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/s
 
 
 
-在当前目录下新建 `.env` 环境配置文件，用于输入你的学号，密码（**你本项目所有代码均在本地执行，不会向任何第三方服务器上传你的学号或密码**。）
+在项目根目录（`main.py` 同级）创建 `.env` 文件，可参考 `.env.example` 填写学号、密码。`.env.example` 只是模板，不会被程序自动加载。凭据用于向学校 CAS 服务发起认证，请勿提交或分享真实的 `.env` 文件。
 
 ```env
-// .env
-student_id = "202xxxxxxx"
-password = "YourPassword"
+student_id="202xxxxxxx"
+password="YourPassword"
 ```
 
+也可以设置同名环境变量 `student_id` 和 `password`；已有环境变量优先于 `.env`。修改配置后，需要退出并重新启动程序才能生效。
 
-
-如果想要手动输入，可以在 [hfut/config.py](./hfut/config.py) 把 `getenv` 注释掉，然后启用下方的输入学号密码
-
-```python
-# hfut/config.py
-import os
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
-STUDENT_ID = os.getenv("student_id")
-PASSWORD = os.getenv("password")
-
-# STUDENT_ID = input("请输入学号：")
-# PASSWORD = input("请输入密码：")
-```
+程序会在开始新的验证码登录流程前检查配置是否缺失。若提示缺少 `LOGIN_FLAVORING`，则是登录初始化未取得加密密钥，应检查初始化接口响应，而不是反复修改密码或验证码。
 
 
 
@@ -94,4 +78,12 @@ python main.py
 你会在终端看到你的敏感信息，比如姓名，培养情况等（这些信息来自你登录后的官方接口，本仓库不会保存或外传），这就意味着登录成功。如下图所示：![image-20251121222916671](./assets/image-20251121222916671.png)
 
 其它 CAS 统一身份认证后的服务接口，你可以根据自己的需求继续调用。请自行体会或者问LLM，或者提Issue，看到了我会回复。
+
+## 回归测试
+
+安装运行依赖后，可使用 Python 标准库运行测试，无需真实账号或联网登录：
+
+```bash
+python -m unittest discover -s tests -v
+```
 

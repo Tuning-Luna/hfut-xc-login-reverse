@@ -174,7 +174,14 @@ class Reverse:
     # 加密
     @staticmethod
     def encryption_pwd() -> str:
-        key = Reverse.session.cookies.get_dict()["LOGIN_FLAVORING"].encode("utf-8")
+        config.validate_credentials()
+        flavoring = Reverse.session.cookies.get_dict().get("LOGIN_FLAVORING")
+        if not flavoring:
+            raise ValueError(
+                "登录初始化失败：未获取到有效的 LOGIN_FLAVORING 加密密钥。"
+                "请重新登录；若持续出现，请检查 checkInitParams 接口响应。"
+            )
+        key = flavoring.encode("utf-8")
 
         # 不要修改全局的 password
         pwd_bytes = config.PASSWORD.encode("utf-8")

@@ -5,14 +5,31 @@ URL / Referer 等常量集中于此，避免在各请求方法中重复书写。
 """
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-# 账号（来自 .env，保持与旧 reverse.py 一致：可能为 None，由调用方决定如何处理）
+# 账号来自项目根目录的 .env 或环境变量，登录前校验是否完整。
 STUDENT_ID = os.getenv("student_id")
 PASSWORD = os.getenv("password")
+
+
+def validate_credentials() -> None:
+    """检查登录必需的配置，错误信息只包含字段名，不包含凭据。"""
+    missing = [
+        name
+        for name, value in (("student_id", STUDENT_ID), ("password", PASSWORD))
+        if not value
+    ]
+    if missing:
+        raise ValueError(
+            f"缺少账号配置：{', '.join(missing)}。"
+            "请在项目根目录的 .env 文件中填写 student_id 和 password"
+            "（参考 .env.example），保存后重新启动程序。"
+        )
+
 
 # 会话持久化文件名
 SESSION_FILE = "session.json"

@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlparse
 from bs4 import BeautifulSoup
 from tabulate import tabulate
 
+from hfut import config
 from hfut.client import Reverse
 
 # 验证码图片的保存位置（相对当前工作目录）
@@ -26,6 +27,7 @@ class UserCLI:
         if Reverse.load_session():
             return True
 
+        config.validate_credentials()
         Reverse.preLogin()
         Reverse.vercode()
         Reverse.checkInitParams()
