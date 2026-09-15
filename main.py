@@ -127,8 +127,11 @@ class UserCLI:
                 raise Exception("当前未登录或登录状态已丢失。")
 
             res = Reverse.selectUserInfoForHall(token=Reverse.token)
+            data = res.json()
+            data.get("data", {}).pop("avatorUrl", None)
+            # 头像使用base64存储，无法直接输出
             print("大厅学生信息：")
-            print(res.json())
+            print(data)
         except Exception as e:
             print("查询学生信息失败：", e)
             print("可能是未登录或登录已失效，请先选择菜单 1 重新登录。")
