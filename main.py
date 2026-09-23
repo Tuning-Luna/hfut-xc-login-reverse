@@ -12,8 +12,14 @@ from urllib.parse import parse_qs, urlparse
 from bs4 import BeautifulSoup
 from tabulate import tabulate
 
-from hfut import config
+from hfut import config, log
 from hfut.client import Reverse
+
+# 入口脚本用固定的 logger 名，避免以脚本运行时显示为 __main__
+logger = log.get_logger("cli")
+
+# 在模块导入时配置日志：UserCLI 也会被测试直接导入调用，需要一致的输出行为
+log.setup_logging()
 
 # 验证码图片的保存位置（相对当前工作目录）
 VERCODE_FILE = Path("vercode.png")
@@ -61,7 +67,7 @@ class UserCLI:
         params = parse_qs(parsed.query)
         code = params.get("code", [None])[0]
 
-        print("code : ", code)
+        logger.info("code : %s", code)
 
         # 将 code 存到 Reverse 类中
         Reverse.code = code
@@ -70,7 +76,7 @@ class UserCLI:
         res2 = Reverse.getToken(code)
         token = res2.json()["data"]["access_token"]
 
-        print("token成功获取！ : ", token)
+        logger.info("token成功获取！ : %s", token)
 
         # 将 token 存到 Reverse 类中
         Reverse.token = token
@@ -98,12 +104,12 @@ class UserCLI:
         try:
             ok = UserCLI.init()
             if ok:
-                print("登录成功！")
+                logger.info("登录成功！")
             else:
-                print("登录失败，请检查学号、密码或验证码。")
+                logger.warning("登录失败，请检查学号、密码或验证码。")
         except Exception as e:
-            print("登录过程发生错误：", e)
-            print("请稍后重试，或检查网络 / 账号配置。")
+            logger.error("登录过程发生错误：%s", e)
+            logger.warning("请稍后重试，或检查网络 / 账号配置。")
 
     @staticmethod
     def query_hall_simple() -> None:
@@ -113,11 +119,10 @@ class UserCLI:
                 raise Exception("当前未登录或登录状态已丢失。")
 
             res = Reverse.selectUserSimplifyInfoForHall(Reverse.token, Reverse.code)
-            print("大厅基本信息：")
-            print(res.json())
+            logger.info("大厅基本信息：\n%s", log.format_json(res.json()))
         except Exception as e:
-            print("查询大厅信息失败：", e)
-            print("可能是未登录或登录已失效，请先选择菜单 1 重新登录。")
+            logger.error("查询大厅信息失败：%s", e)
+            logger.warning("可能是未登录或登录已失效，请先选择菜单 1 重新登录。")
 
     @staticmethod
     def query_hall_user_info() -> None:
@@ -128,13 +133,12 @@ class UserCLI:
 
             res = Reverse.selectUserInfoForHall(token=Reverse.token)
             data = res.json()
-            data.get("data", {}).pop("avatorUrl", None)
             # 头像使用base64存储，无法直接输出
-            print("大厅学生信息：")
-            print(data)
+            data.get("data", {}).pop("avatorUrl", None)
+            logger.info("大厅学生信息：\n%s", log.format_json(data))
         except Exception as e:
-            print("查询学生信息失败：", e)
-            print("可能是未登录或登录已失效，请先选择菜单 1 重新登录。")
+            logger.error("查询学生信息失败：%s", e)
+            logger.warning("可能是未登录或登录已失效，请先选择菜单 1 重新登录。")
 
     @staticmethod
     def query_exam_arrange_info() -> None:
@@ -146,7 +150,7 @@ class UserCLI:
             soup = BeautifulSoup(res.text, "html.parser")
             table = soup.find("table", id="exams")
             if not table:
-                print("未找到考试表格（id='exams'），请检查页面结构或登录状态。")
+                logger.warning("未找到考试表格（id='exams'），请检查页面结构或登录状态。")
                 return
 
             rows = []
@@ -159,30 +163,34 @@ class UserCLI:
                 time_str = tds[1].get_text(strip=True)
                 rows.append([course, time_str])
 
-            # 用 tabulate 以表格形式打印，自动处理中英文宽度
-            print(
+            # 用 tabulate 以表格形式输出，自动处理中英文宽度
+            logger.info(
+                "考试安排：\n%s",
                 tabulate(
                     rows,
                     headers=["课程名称", "日期时间"],
                     tablefmt="grid",
                     showindex=True,
-                )
+                ),
             )
 
         except Exception as e:
-            print("查询考试安排信息失败：", e)
-            print("可能是未登录或登录已失效，请先选择菜单 1 重新登录。")
+            logger.error("查询考试安排信息失败：%s", e)
+            logger.warning("可能是未登录或登录已失效，请先选择菜单 1 重新登录。")
 
     @staticmethod
     def run() -> None:
         """简单交互命令行菜单"""
         while True:
-            print("\n===== HFUT Reverse CLI =====")
-            print("1. 登录 / 重新登录")
-            print("2. 查询大厅基本信息")
-            print("3. 查询大厅学生信息")
-            print("4. 查询考试安排信息")
-            print("q. 退出")
+            # 菜单整体作为一条日志输出，避免每行都带时间戳前缀
+            logger.info(
+                "\n===== HFUT Reverse CLI =====\n"
+                "1. 登录 / 重新登录\n"
+                "2. 查询大厅基本信息\n"
+                "3. 查询大厅学生信息\n"
+                "4. 查询考试安排信息\n"
+                "q. 退出"
+            )
 
             choice = input("请输入操作编号：").strip().lower()
 
@@ -195,10 +203,10 @@ class UserCLI:
             elif choice == "4":
                 UserCLI.query_exam_arrange_info()
             elif choice in ("q", "quit", "exit"):
-                print("已退出程序。")
+                logger.info("已退出程序。")
                 break
             else:
-                print("无效选项，请重新输入。")
+                logger.warning("无效选项，请重新输入。")
 
 
 if __name__ == "__main__":

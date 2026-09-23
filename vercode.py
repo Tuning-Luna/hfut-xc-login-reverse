@@ -12,7 +12,13 @@ from pathlib import Path
 
 import requests
 
-from hfut import config, headers
+from hfut import config, headers, log
+
+# 入口脚本用固定的 logger 名，避免以脚本运行时显示为 __main__
+logger = log.get_logger("vercode")
+
+# 在模块导入时配置日志，保证脚本与测试输出一致
+log.setup_logging()
 
 # 验证码接口
 VERCODE_URL = f"{config.CAS_BASE}/cas/vercode"
@@ -54,9 +60,9 @@ def fetch_vercode(session: requests.Session) -> None:
     if resp.status_code == 200 and resp.content:
         filename = SAVE_DIR / f"{ts}.png"
         filename.write_bytes(resp.content)
-        print(f"[OK] 验证码保存成功: {filename}")
+        logger.info("验证码保存成功: %s", filename)
     else:
-        print(f"[ERR] 请求失败: HTTP {resp.status_code}")
+        logger.error("请求失败: HTTP %s", resp.status_code)
 
 
 def loop_fetch() -> None:
@@ -69,5 +75,5 @@ def loop_fetch() -> None:
 
 
 if __name__ == "__main__":
-    print("开始持续获取验证码...")
+    logger.info("开始持续获取验证码...")
     loop_fetch()

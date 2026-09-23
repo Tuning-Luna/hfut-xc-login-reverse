@@ -17,7 +17,9 @@ import requests
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
-from hfut import config, headers
+from hfut import config, headers, log
+
+logger = log.get_logger(__name__)
 
 
 class Reverse:
@@ -53,8 +55,8 @@ class Reverse:
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            # 持久化失败不应影响主流程，打印一下即可
-            print("保存会话信息失败：", e)
+            # 持久化失败不应影响主流程，记录告警即可
+            logger.warning("保存会话信息失败：%s", e)
 
     @staticmethod
     def load_session(file_path: Optional[str] = None) -> bool:
@@ -69,7 +71,7 @@ class Reverse:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except Exception as e:
-            print("读取会话信息失败：", e)
+            logger.warning("读取会话信息失败：%s", e)
             return False
 
         # 恢复 token / code
@@ -93,10 +95,10 @@ class Reverse:
         if Reverse.token and Reverse.code:
             try:
                 if Reverse.checkToken(Reverse.token, Reverse.code):
-                    print("已从本地会话文件恢复登录状态。")
+                    logger.info("已从本地会话文件恢复登录状态。")
                     return True
             except Exception as e:
-                print("本地会话校验失败，将视为未登录：", e)
+                logger.warning("本地会话校验失败，将视为未登录：%s", e)
                 return False
 
         return False
@@ -241,65 +243,59 @@ class Reverse:
     ):
         resp = session.request(method, url, allow_redirects=allow_redirects, **kwargs)
 
-        print("\n====== 当前请求 & 响应 ======")
-        print(f"[{method.upper()}] {resp.status_code} {resp.url}")
+        logger.debug("====== 当前请求 & 响应 ======")
+        logger.debug("[%s] %s %s", method.upper(), resp.status_code, resp.url)
 
         # 本次请求发出去的 Cookie
         req_cookie = resp.request.headers.get("Cookie")
-        print("  >>> 请求发送的 Cookie:", req_cookie if req_cookie else "{}")
+        logger.debug("  >>> 请求发送的 Cookie: %s", req_cookie or "{}")
 
         if "Location" in resp.headers:
-            print("  >>> 响应 Location:", resp.headers["Location"])
+            logger.debug("  >>> 响应 Location: %s", resp.headers["Location"])
 
-        print("  >>> 响应 Set-Cookie:", resp.headers.get("Set-Cookie"))
+        logger.debug("  >>> 响应 Set-Cookie: %s", resp.headers.get("Set-Cookie"))
+        logger.debug("  >>> 当前 session cookies: %s", session.cookies.get_dict())
 
-        print("  >>> 当前 session cookies:", session.cookies.get_dict())
-
-        print()
-
-        # 只有开启了自动重定向，才打印完整历史链（你原来想要的效果）
+        # 只有开启了自动重定向，才记录完整历史链
         if allow_redirects and resp.history:
-            print("====== 完整重定向链条 ======")
+            logger.debug("====== 完整重定向链条 ======")
             for i, h in enumerate(resp.history, 1):
-                print(f"[{i}] {h.status_code} {h.url}")
+                logger.debug("[%s] %s %s", i, h.status_code, h.url)
+                logger.debug(
+                    "  >>> 请求发送的 Cookie：%s", h.request.headers.get("Cookie")
+                )
+                logger.debug(
+                    "  >>> 响应返回的 Set-Cookie：%s", h.headers.get("Set-Cookie")
+                )
 
-                print("  >>> 请求发送的 Cookie：")
-                print("  ", h.request.headers.get("Cookie"))
+            logger.debug("====== 最终响应 ======")
+            logger.debug("%s %s", resp.status_code, resp.url)
+            logger.debug("Set-Cookie: %s", resp.headers.get("Set-Cookie"))
 
-                print("  >>> 响应返回的 Set-Cookie：")
-                print("  ", h.headers.get("Set-Cookie"))
-
-                print()
-
-            print("====== 最终响应 ======")
-            print(resp.status_code, resp.url)
-            print("Set-Cookie:", resp.headers.get("Set-Cookie"))
-            print()
-
-        print("====== 结束 ======")
+        logger.debug("====== 结束 ======")
         return resp
 
     # 调试单个请求方法
     @staticmethod
     def debug_response(resp: requests.Response) -> None:
-        print("\n====== 调试单个 Response ======")
+        logger.debug("====== 调试单个 Response ======")
 
-        print(f"状态码: {resp.status_code}")
-        print(f"URL: {resp.url}")
+        logger.debug("状态码: %s", resp.status_code)
+        logger.debug("URL: %s", resp.url)
 
         # 请求发送的 Cookie
         req_cookie = resp.request.headers.get("Cookie")
-        print("请求发送的 Cookie:", req_cookie if req_cookie else "{}")
+        logger.debug("请求发送的 Cookie: %s", req_cookie or "{}")
 
         # 响应 Set-Cookie
         set_cookie = resp.headers.get("Set-Cookie")
-        print("响应 Set-Cookie:", set_cookie if set_cookie else "{}")
+        logger.debug("响应 Set-Cookie: %s", set_cookie or "{}")
 
         # Location
         if "Location" in resp.headers:
-            print("响应 Location:", resp.headers["Location"])
+            logger.debug("响应 Location: %s", resp.headers["Location"])
 
-        print("====== 结束 ======\n")
+        logger.debug("====== 结束 ======")
 
     # 生成 secret 密钥
     @staticmethod

@@ -23,6 +23,7 @@ hfut-xc-login-reverse/
 ├── hfut/           # 客户端包
 │   ├── config.py   # .env 账号读取 + 域名/URL 常量
 │   ├── headers.py  # 各接口公共请求头构建器
+│   ├── log.py      # 统一日志输出 + JSON 美化
 │   └── client.py   # Reverse 类（CAS/门户/教务接口）
 ├── main.py         # 交互式 CLI 入口
 ├── vercode.py      # 独立验证码抓取工具
@@ -78,6 +79,12 @@ python main.py
 你会在终端看到你的敏感信息，比如姓名，培养情况等（这些信息来自你登录后的官方接口，本仓库不会保存或外传），这就意味着登录成功。如下图所示：![image-20251121222916671](./assets/image-20251121222916671.png)
 
 其它 CAS 统一身份认证后的服务接口，你可以根据自己的需求继续调用。请自行体会或者问LLM，或者提Issue，看到了我会回复。
+
+## 日志输出
+
+所有输出统一走标准库 `logging`（`hfut/log.py`），默认级别 INFO，接口返回的 JSON 会带缩进美化后打印，中文不会被转义。
+
+设置环境变量 `LOG_LEVEL=DEBUG`（或在 `.env` 中写 `LOG_LEVEL=DEBUG`）可以打开 `hfut.client` 里的请求 / 重定向链调试日志。
 
 ## 回归测试
 
